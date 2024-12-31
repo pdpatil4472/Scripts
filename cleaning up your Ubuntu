@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Clean up temporary files
+sudo apt autoremove -y
+sudo apt clean -y
+sudo apt autoclean -y
+
+# Remove old kernels (keep the latest 3)
+dpkg -l 'linux-image*' | awk '{print $2}' | sort -V | tail -n +4 | xargs sudo apt-mark hold
+sudo apt autoremove -y
+
+# Clean up old snaps (keep the latest version of each snap)
+snap list --all | awk '{print $1}' | while read snap; do
+  snap remove "$snap" --keep $(( $(snap list --all | grep "$snap" | wc -l) - 1 ))
+done
+
+# Clean up old Docker images (optional)
+docker system prune -a -f
+
+# Empty the trash
+rm -rf ~/.local/share/Trash/*
+
+# Clear browser cache and history (replace with your browser commands)
+# For Chrome/Chromium:
+google-chrome --purge
+
+# Clear Firefox cache and history:
+firefox -P
+
+# Clear history in bash
+history -c
+
+# Optional: Find and remove large files
+find / -size +100M -exec du -sh {} \; | sort -h | tail -n 10 
+
+# Note: The above command will only display the 10 largest files. 
+# You can modify the size threshold (+100M) and the number of displayed files 
+# according to your needs.
+
+echo "Cleanup completed."
